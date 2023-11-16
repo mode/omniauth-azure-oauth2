@@ -5,10 +5,12 @@ module OmniAuth
   module Strategies
     class AzureOauth2 < OmniAuth::Strategies::OAuth2
       BASE_AZURE_URL = 'https://login.microsoftonline.com'
+      AUTHORIZE_OPTIONS = %i[scope state redirect_uri login_hint]
 
       option :name, 'azure_oauth2'
 
       option :tenant_provider, nil
+      option :authorize_options, AUTHORIZE_OPTIONS
 
       # AD resource identifier
       option :resource, '00000002-0000-0000-c000-000000000000'
@@ -38,6 +40,10 @@ module OmniAuth
         super
       end
 
+      def authorize_params
+        super.merge(custom_redirect_uri).merge(custom_login_hint)
+      end
+
       uid {
         raw_info['sub']
       }
@@ -54,9 +60,23 @@ module OmniAuth
         }
       end
 
+      def custom_redirect_uri
+        redirect_uri = request.params["redirect_uri"]
+        return {} unless redirect_uri
+
+        {:redirect_uri => redirect_uri}
+      end
+
+      def custom_login_hint
+        login_hint = request.params["login_hint"]
+        return {} unless login_hint
+
+        {:login_hint => login_hint}
+      end
+
       def token_params
         azure_resource = request.env['omniauth.params'] && request.env['omniauth.params']['azure_resource']
-        super.merge(resource: azure_resource || options.resource)
+        super.merge(resource: azure_resource || options.resource).merge(custom_redirect_uri)
       end
 
       def callback_url
