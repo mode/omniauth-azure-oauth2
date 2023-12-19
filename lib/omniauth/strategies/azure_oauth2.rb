@@ -64,14 +64,14 @@ module OmniAuth
         redirect_uri = request.params["redirect_uri"]
         return {} unless redirect_uri
 
-        {:redirect_uri => redirect_uri}
+        {redirect_uri: redirect_uri}
       end
 
       def custom_login_hint
         login_hint = request.params["login_hint"]
         return {} unless login_hint
 
-        {:login_hint => login_hint}
+        {login_hint: login_hint}
       end
 
       def token_params
